@@ -13,15 +13,15 @@ before_script:
  - django-admin startproject testsite .
  - ln -s zsolthajdu/bookmarks-django/bookmarks bookmarks
  - echo "INSTALLED_APPS += [ 'rest_framework',  'rest_framework.authtoken', 'tagging', 'bookmarks']" >> testsite/settings.py
- - echo "REST_FRAMEWORK = { \
-    'DEFAULT_PERMISSION_CLASSES': ( \
-        'rest_framework.permissions.IsAuthenticated', \
-    ), \
-    'DEFAULT_AUTHENTICATION_CLASSES': ( \
-        'rest_framework.authentication.BasicAuthentication', \
-        'rest_framework.authentication.TokenAuthentication', \
-    ), \
-    'DEFAULT_PAGINATION_CLASS': { 'rest_framework.pagination.PageNumberPagination' } , \
+ - echo "REST_FRAMEWORK = { 
+    'DEFAULT_PERMISSION_CLASSES': ( 
+        'rest_framework.permissions.IsAuthenticated', 
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PAGINATION_CLASS': { 'rest_framework.pagination.PageNumberPagination' },
     'PAGE_SIZE': 100    }" >> testsite/settings.py
  - python manage.py migrate     
  - python manage.py makemigrations bookmarks
