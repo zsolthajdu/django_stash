@@ -1,0 +1,9 @@
+django==1.11
+djangorestframework
+coreapi
+markdown
+lxml
+beautifulsoup4
+django-tagging
+django-filter
+requests
