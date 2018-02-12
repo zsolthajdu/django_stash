@@ -59,6 +59,13 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, bookmark)
 
+    def test_api_can_find_existing_bookmark(self):
+        """Test the api can find existing bookmark based on URL."""
+        bookmark = Bookmark.objects.get( id=1 )
+        response = self.client.get( "/bookmarks/?url=http://cnn.com", format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, bookmark)
+
     def test_api_can_update_bookmark(self):
         """Test the api can update a given bookmark."""
         bookmark = Bookmark.objects.get()

@@ -51,10 +51,14 @@ class CreateView(generics.ListCreateAPIView):
     def get_queryset( self):
         # Grab logged in user's bookmarks, ordered by creation date
         qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
-        tags = self.request.query_params.get( "tags", "")
+        tags = self.request.query_params.get( "tags", None )
+        req_url = self.request.query_params.get( "url", None )
         # Also filter on tag(s), value can be one or more - comma separated - tag
-        if tags is not "":
-            qs = TaggedItem.objects.get_by_model( Bookmark, tags )
+        if tags is not None:
+            qs = TaggedItem.objects.get_by_model( qs, tags )
+        elif req_url is not None:
+            # Can also look if a bookmark already exists, using the url from query
+            qs = qs.filter( url = req_url )
         return qs
 
 class DetailsView(generics.RetrieveUpdateDestroyAPIView):
