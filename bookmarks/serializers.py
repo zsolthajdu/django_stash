@@ -24,9 +24,17 @@ class BookmarkSerializer(serializers.ModelSerializer):
             owner = request.user
         )
 
-        # TODO: Check if bookmark already in database
         bookmark.save()
 
         # Update 'tags' field in new bookmark record
         Tag.objects.update_tags(bookmark, validated_data['tags'][0] )
         return bookmark
+
+    # Update function to handle PUT
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get( 'title', instance.title );
+        instance.description = validated_data.get( 'description', instance.description );
+        instance.save()
+        Tag.objects.update_tags( instance, validated_data['tags'][0] )
+        return instance
+        
