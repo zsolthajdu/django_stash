@@ -17,13 +17,13 @@ class BookmarkSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context['request']
-        bookmark = Bookmark(
-            title=validated_data['title'],
-            description=validated_data['description'],
-            url=validated_data['url'],
-            owner = request.user
-        )
-
+        if 'created' in validated_data:
+            bookmark = Bookmark(title=validated_data['title'],description=validated_data['description'],
+                        url=validated_data['url'], owner = request.user,
+                        created = validated_data['created'] )
+        else:
+            bookmark = Bookmark(title=validated_data['title'],description=validated_data['description'],
+                        url=validated_data['url'], owner = request.user )
         bookmark.save()
 
         # Update 'tags' field in new bookmark record

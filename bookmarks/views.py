@@ -71,3 +71,10 @@ class DetailsView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset( self ):
         return Bookmark.objects.all().filter(owner = self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        bm = self.get_object()
+        # Remove tag associations first
+        Tag.objects.update_tags( bm, None)
+        # 
+        return self.destroy(request, *args, **kwargs)
