@@ -18,16 +18,20 @@ class BookmarkSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context['request']
-        bookmark = Bookmark(title=validated_data['title'],description=validated_data['description'],
-                        public=validated_data['public'], url=validated_data['url'], owner = request.user )
-        bookmark.owner = request.user
+        inTags = ''
+        if 'tags' in validated_data:
+            inTags = validated_data['tags'][0]
+            del validated_data['tags']
+
+        bookmark = Bookmark.objects.create( **validated_data, owner = request.user )
         # Use incoming creation date, in case it comes from a backup or whatnot
         if 'created' in validated_data:
             bookmark.created = validated_data['created']
         bookmark.save()
 
         # Update 'tags' field in new bookmark record
-        Tag.objects.update_tags(bookmark, validated_data['tags'][0] )
+        if inTags != '':
+            Tag.objects.update_tags(bookmark, inTags ) 
         return bookmark
 
     # Update function to handle PUT

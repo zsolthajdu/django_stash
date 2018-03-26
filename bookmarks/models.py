@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import datetime
+from django.utils import timezone
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
@@ -8,10 +8,10 @@ from tagging.registry import register
 from tagging.fields import TagField
 
 class Bookmark(models.Model):
-    created = models.DateTimeField( default = datetime.now )
+    created = models.DateTimeField( default = timezone.now )
     title = models.CharField(max_length=256, blank=True, default='')
     description = models.CharField(max_length=2048, blank=True, default='')
-    url = models.CharField(max_length=2048, blank=True, default='')
+    url = models.CharField(max_length=2048, default='')
     owner = models.ForeignKey('auth.User',related_name='bookmark', on_delete=models.CASCADE)
     public = models.BooleanField( blank=True, default = False )
 
