@@ -54,7 +54,7 @@ class ViewTestCase(TestCase):
     def test_authorization_is_enforced(self):
         """Test that the api has user authorization."""
         new_client = APIClient()
-        res = new_client.get('/bookmarks/', kwargs={'pk': 3}, format="json")
+        res = new_client.get( reverse('create'), kwargs={'pk': 1}, format="json")
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
         
     def test_api_can_get_a_bookmark(self):
@@ -69,13 +69,13 @@ class ViewTestCase(TestCase):
     def test_api_can_find_existing_bookmark(self):
         """Test the api can find existing bookmark based on URL."""
         bookmark = Bookmark.objects.get( id=1 )
-        response = self.client.get( "/bookmarks/?url=https://cnn.com", format="json")
+        response = self.client.get( reverse('create') + "?url=https://cnn.com", format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, bookmark)
 
     def test_api_can_update_bookmark(self):
         """Test the api can update a given bookmark."""
-        bookmark = Bookmark.objects.get( id=1 )
+        bookmark = Bookmark.objects.get( id=2 )
         changed_bookmark = { 'title': 'CNN.com', 'url':'https://cnn.com', 'description':'Quality news network', 'tags': ['tv,news,cnn,tag4'] }
         res = self.client.put( reverse('details', kwargs={'pk': bookmark.id}), changed_bookmark, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
