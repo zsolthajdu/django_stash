@@ -27,7 +27,7 @@ before_script:
  - python manage.py migrate     
  - python manage.py makemigrations bookmarks
  - python manage.py migrate bookmarks
- - sed -i -e "s/^]/   path(r'^'\, include('bookmarks.urls')),\n]/" testsite/urls.py
+ - sed -i -e "s/^]/   path(''\, include('bookmarks.urls')),\n]/" testsite/urls.py
  - sed -i -e "s/import path/import path,include/" testsite/urls.py
  
 script:
