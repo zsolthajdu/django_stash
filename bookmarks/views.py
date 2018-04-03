@@ -45,12 +45,16 @@ class CreateView(generics.ListCreateAPIView):
     """This class defines the create behavior of our rest api."""
     #queryset = Bookmark.objects.all()
     serializer_class = BookmarkSerializer
-    permission_classes = (permissions.IsAuthenticated, IsOwner)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly , )  #(permissions.IsAuthenticated, IsOwner)
     pagination_class = BMPagination
 
     def get_queryset( self):
         # Grab logged in user's bookmarks, ordered by creation date
-        qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
+        if self.request.user.is_anonymous:
+            # Or, if user is not logged in, all public bookmarks
+            qs = Bookmark.objects.all().filter(public = True).order_by('-created')
+        else:
+            qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
         tags = self.request.query_params.get( "tags", None )
         req_url = self.request.query_params.get( "url", None )
         # Also filter on tag(s), value can be one or more - comma separated - tag

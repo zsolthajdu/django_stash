@@ -15,7 +15,7 @@ class ModelTestCase(TestCase):
         self.bookmark_description = "A longer description comes here."
         self.bookmark_url = "http://nytimes.com"
         self.bookmark = Bookmark(title=self.bookmark_title, description=self.bookmark_description,
-            url=self.bookmark_url, owner=user )
+            url=self.bookmark_url, owner=user, public=True )
 
     def test_model_can_create_a_bookmark(self):
         """Test the bookmark model can create a bookmark."""
@@ -36,26 +36,35 @@ class ViewTestCase(TestCase):
         self.client.force_authenticate(user=user)
 
         # Bare minimum
-        self.bookmark_data = { 'url':'http://cbsnews.com', 'owner': user.id }
+        self.bookmark_data = { 'url':'http://cbsnews.com', 'owner': user.id, 'public':False }
         self.response = self.client.post( reverse('create'), self.bookmark_data, format="json")
         # With description and tags
         self.bookmark_data = { 'url':'https://cnn.com', 
-                        'description':'Global news network', 'owner': user.id, 'tags': ['tv,news']}
+                        'description':'Global news network', 'owner': user.id, 'tags': ['tv,news'], 'public':True}
         self.response = self.client.post( reverse('create'), self.bookmark_data, format="json")
         # with title and public
-        self.bookmark_data = { 'url':'http://abcnews.com', 'title':'ABC news division', 'public' : 'True',
-                        'description':'Global news network', 'owner': user.id, 'tags': ['tv,news']}
+        self.bookmark_data = { 'url':'http://linux.com', 'title':'Linux News', 'public' : 'True',
+                        'description':'Linux Foundation website', 'owner': user.id, 'tags': ['tv,news'], 'public':True }
         self.response = self.client.post( reverse('create'), self.bookmark_data, format="json")
 
     def test_api_can_create_a_bookmark(self):
         """Test the api has bookmark creation capability."""
         self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
         
-    def test_authorization_is_enforced(self):
+    def test_create_authorization_is_enforced(self):
         """Test that the api has user authorization."""
         new_client = APIClient()
-        res = new_client.get( reverse('create'), kwargs={'pk': 1}, format="json")
+        self.bookmark_data = { 'url':'http://opensource.com', 'title':'Open source software News', 'public' : 'True',
+                        'description':'Open source information', 'tags': ['tv,news'], 'public':True }
+        res = new_client.post( reverse('create'), self.bookmark_data, format="json")
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_nonuser_only_gets_public(self):
+        """Test that if user is not logged in, only gets public bookmarks"""
+        new_client = APIClient()
+        res = new_client.get( reverse('create'), format="json" )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual( res.data['count'], 2 )
         
     def test_api_can_get_a_bookmark(self):
         """Test the api can get a given bookmark."""
