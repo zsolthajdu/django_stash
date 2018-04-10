@@ -1,9 +1,8 @@
 from rest_framework.permissions import BasePermission
 from rest_framework import permissions
 
-from .models import Bookmark
 
-class IsOwner(BasePermission):
+class IsOwnerOrReadOnly(BasePermission):
     """Custom permission class to allow only bookmark owners to edit them."""
 
     def has_object_permission(self, request, view, obj):

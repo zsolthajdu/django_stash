@@ -28,24 +28,27 @@ class ViewTestCase(TestCase):
     """Test suite for the api views."""
 
     def setUp(self):
-        """Define the test client and other test variables."""
-        user = User.objects.create(username="anonymous")
-        
-        # Initialize client and force it to use authentication
-        self.client = APIClient()
-        self.client.force_authenticate(user=user)
+        """Define the test clients and other test variables."""
+        alice = User.objects.create(username="Alice")
+        bob = User.objects.create(username="Bob")
+
+        # Initialize clientss and force it to use authentication
+        self.clientA = APIClient()
+        self.clientA.force_authenticate(user=alice)
+        self.clientB = APIClient()
+        self.clientB.force_authenticate(user=bob)
 
         # Bare minimum
-        self.bookmark_data = { 'url':'http://cbsnews.com', 'owner': user.id, 'public':False }
-        self.response = self.client.post( reverse('create'), self.bookmark_data, format="json")
+        self.bookmark_data = { 'url':'http://cbsnews.com', 'owner': alice.id, 'public':'false' }
+        self.response = self.clientA.post( reverse('create'), self.bookmark_data, format="json")
         # With description and tags
         self.bookmark_data = { 'url':'https://cnn.com', 
-                        'description':'Global news network', 'owner': user.id, 'tags': ['tv,news'], 'public':True}
-        self.response = self.client.post( reverse('create'), self.bookmark_data, format="json")
+                        'description':'Global news network', 'owner': alice.id, 'tags': ['tv,news'], 'public':'true'}
+        self.response = self.clientA.post( reverse('create'), self.bookmark_data, format="json")
         # with title and public
-        self.bookmark_data = { 'url':'http://linux.com', 'title':'Linux News', 'public' : 'True',
-                        'description':'Linux Foundation website', 'owner': user.id, 'tags': ['tv,news'], 'public':True }
-        self.response = self.client.post( reverse('create'), self.bookmark_data, format="json")
+        self.bookmark_data = { 'url':'http://linux.com', 'title':'Linux News',
+                        'description':'Linux Foundation website', 'owner': alice.id, 'tags': ['tv,news'], 'public':'true' }
+        self.response = self.clientB.post( reverse('create'), self.bookmark_data, format="json")
 
     def test_api_can_create_a_bookmark(self):
         """Test the api has bookmark creation capability."""
@@ -54,12 +57,12 @@ class ViewTestCase(TestCase):
     def test_create_authorization_is_enforced(self):
         """Test that the api has user authorization."""
         new_client = APIClient()
-        self.bookmark_data = { 'url':'http://opensource.com', 'title':'Open source software News', 'public' : 'True',
-                        'description':'Open source information', 'tags': ['tv,news'], 'public':True }
+        self.bookmark_data = { 'url':'http://opensource.com', 'title':'Open source software News', 'public' : 'true',
+                        'description':'Open source information', 'tags': ['software,news'] }
         res = new_client.post( reverse('create'), self.bookmark_data, format="json")
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_nonuser_only_gets_public(self):
+    def test_nonauthorized_user_only_gets_public(self):
         """Test that if user is not logged in, only gets public bookmarks"""
         new_client = APIClient()
         res = new_client.get( reverse('create'), format="json" )
@@ -69,7 +72,7 @@ class ViewTestCase(TestCase):
     def test_api_can_get_a_bookmark(self):
         """Test the api can get a given bookmark."""
         bookmark = Bookmark.objects.get( id=1 )
-        response = self.client.get(
+        response = self.clientA.get(
             reverse('details', kwargs={'pk': bookmark.id}), format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -78,26 +81,43 @@ class ViewTestCase(TestCase):
     def test_api_can_find_existing_bookmark(self):
         """Test the api can find existing bookmark based on URL."""
         bookmark = Bookmark.objects.get( id=1 )
-        response = self.client.get( reverse('create') + "?url=https://cnn.com", format="json")
+        response = self.clientA.get( reverse('create') + "?url=https://cnn.com", format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, bookmark)
 
     def test_api_can_update_bookmark(self):
-        """Test the api can update a given bookmark."""
+        """Test the api can update user's own bookmark."""
         bookmark = Bookmark.objects.get( id=2 )
         changed_bookmark = { 'title': 'CNN.com', 'url':'https://cnn.com', 'description':'Quality news network', 'tags': ['tv,news,cnn,tag4'] }
-        res = self.client.put( reverse('details', kwargs={'pk': bookmark.id}), changed_bookmark, format='json')
+        res = self.clientB.put( reverse('details', kwargs={'pk': bookmark.id}), changed_bookmark, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        bm1 = Bookmark.objects.get( id=1 )
+        bm1 = Bookmark.objects.get( id=2 )
         print( bm1.tags )
+
+    def test_api_cannot_update_another_users_bookmark(self):
+        """Test the api can't update someone else's bookmark."""
+        bookmark = Bookmark.objects.get( id=2 )
+        changed_bookmark = { 'title': 'cbs.com', 'url':'https://cnn.com', 'description':'Quality news network', 'tags': ['tv,news,cnn,tag4,tag5'] }
+        res = self.clientA.put( reverse('details', kwargs={'pk': bookmark.id}), changed_bookmark, format='json')
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_api_can_delete_bookmark(self):
         """Test the api can delete a bookmark."""
-        
-        response = self.client.delete(
+        response = self.clientA.delete(
             reverse('details', kwargs={'pk': 1}),format='json', follow=True)
+        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)    
-        
-        
+    def test_nonauthorized_cannot_delete_private_bookmark(self):
+        """Test that unauthorized users cannot delete a private bookmark."""
+        new_client = APIClient()
+        response = new_client.delete( reverse('details', kwargs={'pk': 1}), format='json', follow=True)
+        self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_nonauthorized_cannot_delete_public_bookmark(self):
+        """Test that unauthorized users cannot delete a public bookmark."""
+        new_client = APIClient()
+        response = new_client.delete( reverse('details', kwargs={'pk': 2}), format='json', follow=True)
+        self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
             

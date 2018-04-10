@@ -7,8 +7,14 @@ from rest_framework.utils.urls import remove_query_param, replace_query_param
 from django_filters.rest_framework import DjangoFilterBackend
 from tagging.models import Tag, TaggedItem
 from .serializers import BookmarkSerializer
-from .permissions import IsOwner
+from .permissions import IsOwnerOrReadOnly
 from .models import Bookmark
+
+def bm_main(request):
+    return render( request, 'bm.html')
+
+def bm_file(request, filename):
+    return render( request, filename )
 
 # Custom pagination class to
 class BMPagination( pagination.PageNumberPagination ):
@@ -45,7 +51,7 @@ class CreateView(generics.ListCreateAPIView):
     """This class defines the create behavior of our rest api."""
     #queryset = Bookmark.objects.all()
     serializer_class = BookmarkSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly , )  #(permissions.IsAuthenticated, IsOwner)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly , )
     pagination_class = BMPagination
 
     def get_queryset( self):
@@ -70,7 +76,7 @@ class DetailsView(generics.RetrieveUpdateDestroyAPIView):
 
     #queryset = Bookmark.objects.all()
     serializer_class = BookmarkSerializer
-    permission_classes = (permissions.IsAuthenticated, IsOwner)
+    permission_classes =  (permissions.IsAuthenticatedOrReadOnly , IsOwnerOrReadOnly)
     pagination_class = pagination.PageNumberPagination
 
     def get_queryset( self ):

@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
 from tagging.registry import register
-from tagging.fields import TagField
+
 
 class Bookmark(models.Model):
     created = models.DateTimeField( default = timezone.now )
@@ -14,6 +14,8 @@ class Bookmark(models.Model):
     url = models.CharField(max_length=2048, default='')
     owner = models.ForeignKey('auth.User',related_name='bookmark', on_delete=models.CASCADE)
     public = models.BooleanField( blank=True, default = False )
+
+    objects = models.Manager()
 
     def __str__(self):
         """Return a human readable representation of the model instance."""

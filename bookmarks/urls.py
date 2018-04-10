@@ -9,6 +9,7 @@ from .views import CreateView, DetailsView
 urlpatterns = {
     path('bookmarks/', CreateView.as_view(), name="create"),
     path('bookmark/<int:pk>/', DetailsView.as_view(), name="details"),
+    path('api-auth/', include('rest_framework.urls')),
 }
 
 urlpatterns = format_suffix_patterns(urlpatterns)
