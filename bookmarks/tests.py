@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from django.urls import reverse
 from .models import Bookmark
+import json
+
 
 class ModelTestCase(TestCase):
     """This class defines the test suite for the bookmark model."""
@@ -29,25 +31,25 @@ class ViewTestCase(TestCase):
 
     def setUp(self):
         """Define the test clients and other test variables."""
-        alice = User.objects.create(username="Alice")
+        self.alice = User.objects.create(username="Alice")
         bob = User.objects.create(username="Bob")
 
         # Initialize clientss and force it to use authentication
         self.clientA = APIClient()
-        self.clientA.force_authenticate(user=alice)
+        self.clientA.force_authenticate(user=self.alice)
         self.clientB = APIClient()
         self.clientB.force_authenticate(user=bob)
 
         # Bare minimum
-        self.bookmark_data = { 'url':'http://cbsnews.com', 'owner': alice.id, 'public':'false' }
+        self.bookmark_data = { 'url':'http://cbsnews.com', 'owner': self.alice.id, 'public':'false' }
         self.response = self.clientA.post( reverse('create'), self.bookmark_data, format="json")
         # With description and tags
         self.bookmark_data = { 'url':'https://cnn.com', 
-                        'description':'Global news network', 'owner': alice.id, 'tags': ['tv,news'], 'public':'true'}
+                        'description':'Global news network', 'owner': self.alice.id, 'tags': ['tv,news'], 'public':'true'}
         self.response = self.clientA.post( reverse('create'), self.bookmark_data, format="json")
         # with title and public
         self.bookmark_data = { 'url':'http://linux.com', 'title':'Linux News',
-                        'description':'Linux Foundation website', 'owner': alice.id, 'tags': ['tv,news'], 'public':'true' }
+                        'description':'Linux Foundation website', 'owner': self.alice.id, 'tags': ['tv,news'], 'public':'true' }
         self.response = self.clientB.post( reverse('create'), self.bookmark_data, format="json")
 
     def test_api_can_create_a_bookmark(self):
@@ -119,5 +121,19 @@ class ViewTestCase(TestCase):
         response = new_client.delete( reverse('details', kwargs={'pk': 2}), format='json', follow=True)
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-
-            
+    def test_using_emoji_in_bookmark_info(self):
+        """Test using emoji in bookmark title"""
+        emoji_title = "Tutorial: Build a Basic CRUD App with Node.js - DEV Community 👩‍💻👨‍💻"
+        emoji_url = "https://dev.to/oktadev/tutorial-build-a-basic-crud-app-with-nodejs-1ohn"
+        self.bookmark_data = { 'url':emoji_url, 'owner': self.alice.id,
+            'description':'Learn how to securely store, update, and display user data in a simple Node.js / Express.js app.',
+            'tags': ['software development, inclusive, community,engineering,javascript, webdev, beginners, node'],
+            'title' : emoji_title, 'public':'false' }
+        response = self.clientA.post( reverse('create'), self.bookmark_data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Find bookmark that was just created
+        response = self.clientA.get( reverse('create') + "?url="+emoji_url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        jsonResponse = json.loads( response.content )
+        self.assertEqual( jsonResponse['results'][0]['title'], emoji_title )
+        print( jsonResponse['results'][0]['title'] )
