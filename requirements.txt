@@ -2,8 +2,6 @@ django==2.0.3
 djangorestframework
 coreapi
 markdown
-lxml
-beautifulsoup4
 django-tagging
 django-filter
 requests

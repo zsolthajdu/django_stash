@@ -5,6 +5,7 @@ from rest_framework import permissions
 from rest_framework import pagination
 from rest_framework.utils.urls import remove_query_param, replace_query_param
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Q
 from tagging.models import Tag, TaggedItem
 from .serializers import BookmarkSerializer
 from .permissions import IsOwnerOrReadOnly
@@ -49,7 +50,6 @@ class BMPagination( pagination.PageNumberPagination ):
 
 class CreateView(generics.ListCreateAPIView):
     """This class defines the create behavior of our rest api."""
-    #queryset = Bookmark.objects.all()
     serializer_class = BookmarkSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly , )
     pagination_class = BMPagination
@@ -61,20 +61,46 @@ class CreateView(generics.ListCreateAPIView):
             qs = Bookmark.objects.all().filter(public = True).order_by('-created')
         else:
             qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
-        tags = self.request.query_params.get( "tags", None )
         req_url = self.request.query_params.get( "url", None )
-        # Also filter on tag(s), value can be one or more - comma separated - tag
-        if tags is not None:
-            qs = TaggedItem.objects.get_by_model( qs, tags )
-        elif req_url is not None:
+        if req_url is not None:
             # Can also look if a bookmark already exists, using the url from query
-            qs = qs.filter( url = req_url )
+            qs2 = qs.filter( url = req_url )
+            return qs2
         return qs
+
+class SearchView(generics.ListCreateAPIView):
+    """ Search bookmarks for a keyword using complex queries. """
+    serializer_class = BookmarkSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly , )
+    pagination_class = BMPagination
+
+    def get_queryset( self ):
+        # Grab logged in user's bookmarks, ordered by creation date
+        if self.request.user.is_anonymous:
+            # Or, if user is not logged in, all public bookmarks
+            qs = Bookmark.objects.all().filter(public = True).order_by('-created')
+        else:
+            qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
+        return qs.filter( Q(title__icontains=self.kwargs['term'] ) | Q(description__icontains=self.kwargs['term'] ))
+
+class TagSearchView(generics.ListCreateAPIView):
+    """ Search bookmarks whether they are tagged with certain tags. Uses
+		Django Tags app """
+    serializer_class = BookmarkSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly , )
+    pagination_class = BMPagination
+
+    def get_queryset( self ):
+        # Grab logged in user's bookmarks, ordered by creation date
+        if self.request.user.is_anonymous:
+            # Or, if user is not logged in, all public bookmarks
+            qs = Bookmark.objects.all().filter(public = True).order_by('-created')
+        else:
+            qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
+        return TaggedItem.objects.get_by_model( qs, self.kwargs['term'] )
 
 class DetailsView(generics.RetrieveUpdateDestroyAPIView):
     """This class handles the http GET, PUT and DELETE requests."""
-
-    #queryset = Bookmark.objects.all()
     serializer_class = BookmarkSerializer
     permission_classes =  (permissions.IsAuthenticatedOrReadOnly , IsOwnerOrReadOnly)
     pagination_class = pagination.PageNumberPagination

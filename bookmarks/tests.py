@@ -134,6 +134,6 @@ class ViewTestCase(TestCase):
         # Find bookmark that was just created
         response = self.clientA.get( reverse('create') + "?url="+emoji_url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        jsonResponse = json.loads( response.content )
+        jsonResponse = json.loads( response.content.decode('UTF-8') )
         self.assertEqual( jsonResponse['results'][0]['title'], emoji_title )
         print( jsonResponse['results'][0]['title'] )

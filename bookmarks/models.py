@@ -9,9 +9,9 @@ from tagging.registry import register
 
 class Bookmark(models.Model):
     created = models.DateTimeField( default = timezone.now )
-    title = models.CharField(max_length=256, blank=True, default='')
-    description = models.CharField(max_length=2048, blank=True, default='')
-    url = models.CharField(max_length=2048, default='')
+    title = models.CharField(max_length=255, blank=True, default='')
+    description = models.TextField(max_length=2048, blank=True, default='')
+    url = models.TextField(max_length=2048, default='')
     owner = models.ForeignKey('auth.User',related_name='bookmark', on_delete=models.CASCADE)
     public = models.BooleanField( blank=True, default = False )
 
