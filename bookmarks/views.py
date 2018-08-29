@@ -83,6 +83,30 @@ class SearchView(generics.ListCreateAPIView):
             qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
         return qs.filter( Q(title__icontains=self.kwargs['term'] ) | Q(description__icontains=self.kwargs['term'] ))
 
+class DateSearchView(generics.ListCreateAPIView):
+	""" Search bookmarks based on creation date: year, month and or day  """
+	serializer_class = BookmarkSerializer
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly , )
+	pagination_class = BMPagination
+
+	def get_queryset( self ):
+		# Grab logged in user's bookmarks, ordered by creation date
+		if self.request.user.is_anonymous:
+			# Or, if user is not logged in, all public bookmarks
+			qs = Bookmark.objects.all().filter(public = True).order_by('-created')
+		else:
+			qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
+
+		if 'day' in self.kwargs:
+			return qs.filter( Q(created__year = self.kwargs['year'] ) &
+				  Q(created__month = self.kwargs['month'] ) & Q(created__day = self.kwargs['day'] ) )
+		elif 'month' in self.kwargs:
+			return qs.filter( Q(created__year = self.kwargs['year'] ) & Q(created__month = self.kwargs['month'] ) );
+		elif 'year' in self.kwargs:
+			return qs.filter( Q(created__year = self.kwargs['year'] ) );
+		else:
+			return Bookmark.objects.none();
+
 class TagSearchView(generics.ListCreateAPIView):
     """ Search bookmarks whether they are tagged with certain tags. Uses
 		Django Tags app """
