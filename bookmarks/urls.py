@@ -11,9 +11,9 @@ urlpatterns = {
 	path('<int:pk>', DetailsView.as_view(), name="details"),
 	path('search/<str:term>/', SearchView.as_view(), name="bookmark-search"),
 	path('tags/<str:term>/', TagSearchView.as_view(), name="bookmark-tags"),
-	path('date/<int:year>', DateSearchView.as_view(), name='bookamrk-date'),
-	path('date/<int:year>/<int:month>', DateSearchView.as_view(), name='bookamrk-date'),
-	path('date/<int:year>/<int:month>/<int:day>', DateSearchView.as_view(), name='bookamrk-date'),
+	path('date/<int:year>', DateSearchView.as_view(), name='find-year'),
+	path('date/<int:year>/<int:month>', DateSearchView.as_view(), name='find-year_month'),
+	path('date/<int:year>/<int:month>/<int:day>', DateSearchView.as_view(), name='find-year_month_day'),
 	path('api-auth/', include('rest_framework.urls')),
 }
 
