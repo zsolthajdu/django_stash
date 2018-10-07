@@ -5,13 +5,15 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
 from tagging.registry import register
-
+from bookmarks import settings
 
 class Bookmark(models.Model):
     created = models.DateTimeField( default = timezone.now )
-    title = models.CharField(max_length=255, blank=True, default='')
-    description = models.TextField(max_length=2048, blank=True, default='')
-    url = models.TextField(max_length=2048, default='')
+    title = models.CharField(max_length=settings.MAX_BOOKMARK_TITLE_LENGTH,
+			blank=True, default='')
+    description = models.TextField(max_length=settings.MAX_BOOKMARK_DESCRIPTION_LENGTH, 
+			 blank=True, default='')
+    url = models.TextField(max_length=settings.MAX_BOOKMARK_URL_LENGTH, default='')
     owner = models.ForeignKey('auth.User',related_name='bookmark', on_delete=models.CASCADE)
     public = models.BooleanField( blank=True, default = False )
 

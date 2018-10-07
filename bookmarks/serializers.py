@@ -4,7 +4,6 @@ from datetime import datetime
 
 from .models import Bookmark
 
-
 class BookmarkSerializer(serializers.ModelSerializer):
     """Serializer to map the Model instance into JSON format."""
     owner = serializers.ReadOnlyField(source='owner.username')
@@ -24,6 +23,7 @@ class BookmarkSerializer(serializers.ModelSerializer):
             del validated_data['tags']
 
         bookmark = Bookmark.objects.create( **validated_data, owner = request.user )
+
         # Use incoming creation date, in case it comes from a backup or whatnot
         if 'created' in validated_data:
             bookmark.created = validated_data['created']
@@ -43,4 +43,10 @@ class BookmarkSerializer(serializers.ModelSerializer):
         instance.save()
         Tag.objects.update_tags( instance, validated_data['tags'][0] )
         return instance
-        
+
+class TagSerializer( serializers.ModelSerializer):
+	class Meta:
+		model = Tag
+		fields = ( 'name', )
+
+

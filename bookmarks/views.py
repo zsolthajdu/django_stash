@@ -7,7 +7,7 @@ from rest_framework.utils.urls import remove_query_param, replace_query_param
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 from tagging.models import Tag, TaggedItem
-from .serializers import BookmarkSerializer
+from .serializers import BookmarkSerializer, TagSerializer
 from .permissions import IsOwnerOrReadOnly
 from .models import Bookmark
 
@@ -109,7 +109,7 @@ class DateSearchView(generics.ListCreateAPIView):
 
 class TagSearchView(generics.ListCreateAPIView):
     """ Search bookmarks whether they are tagged with certain tags. Uses
-		Django Tags app """
+		DjangoTags app """
     serializer_class = BookmarkSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly , )
     pagination_class = BMPagination
@@ -122,6 +122,18 @@ class TagSearchView(generics.ListCreateAPIView):
         else:
             qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
         return TaggedItem.objects.get_by_model( qs, self.kwargs['term'] )
+
+class TagListView(generics.ListCreateAPIView):
+	""" Return a list of all tags, associated with bookmarks of current user """
+	serializer_class = TagSerializer
+	permission_classes =  (permissions.IsAuthenticatedOrReadOnly , IsOwnerOrReadOnly)
+	pagination_class = pagination.PageNumberPagination
+
+	def get_queryset( self ):
+		if self.request.user.is_anonymous:
+			return Tag.objects.usage_for_model( Bookmark, filters=dict( public = True ) )
+		else:
+			return Tag.objects.usage_for_model( Bookmark, filters=dict( owner__username=self.request.user.username ) )
 
 class DetailsView(generics.RetrieveUpdateDestroyAPIView):
     """This class handles the http GET, PUT and DELETE requests."""
