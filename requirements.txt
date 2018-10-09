@@ -1,7 +1,7 @@
-django==2.0.3
+django==2.0.8
 djangorestframework
 coreapi
-markdown
+markdown==2.6.11
 django-tagging
 django-filter
 requests
