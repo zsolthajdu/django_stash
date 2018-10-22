@@ -127,7 +127,7 @@ class TagListView(generics.ListCreateAPIView):
 	""" Return a list of all tags, associated with bookmarks of current user """
 	serializer_class = TagSerializer
 	permission_classes =  (permissions.IsAuthenticatedOrReadOnly , IsOwnerOrReadOnly)
-	pagination_class = pagination.PageNumberPagination
+	pagination_class = BMPagination
 
 	def get_queryset( self ):
 		if self.request.user.is_anonymous:
