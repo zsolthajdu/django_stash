@@ -119,4 +119,7 @@ GET http://...../bookmarks/date/YEAR
 GET http://...../bookmarks/date/YEAR/MONTH  
 GET http://...../bookmarks/date/YEAR/MONTH/DAY
 
+## Getting a list of all tags
+The same api that does tag search can also reutrn the full list of the current user's tags when called without any tags to search for.
+GET http://...../bookmarks/tags
 
