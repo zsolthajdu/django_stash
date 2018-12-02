@@ -88,7 +88,7 @@ The JSON object will include the following fields:
 }
 ```
 
-The following examples assume that the app is assigned to the __/bookmarks__ path.
+The following examples assume that the app is accessed through the __/bookmarks__ path.
 
 ### Supported arguments
 * page : to request a specific page of the results. Default is 1.
@@ -121,5 +121,6 @@ GET http://...../bookmarks/date/YEAR/MONTH/DAY
 
 ## Getting a list of all tags
 The same api that does tag search can also reutrn the full list of the current user's tags when called without any tags to search for.
+
 GET http://...../bookmarks/tags
 
