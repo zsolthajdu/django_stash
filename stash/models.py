@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
 from tagging.registry import register
-from bookmarks import settings
+from stash import settings
 
 class Bookmark(models.Model):
     created = models.DateTimeField( default = timezone.now )
