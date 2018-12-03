@@ -1,4 +1,4 @@
-# Django Bookmarks app [![Build Status](https://travis-ci.org/zsolthajdu/django_bookmarks.svg?branch=master)](https://travis-ci.org/zsolthajdu/django_bookmarks) [![Known Vulnerabilities](https://snyk.io/test/github/zsolthajdu/django_bookmarks/badge.svg)](https://snyk.io/test/github/zsolthajdu/django_bookmarks)
+# Django bookmarking app [![Build Status](https://travis-ci.org/zsolthajdu/django_stash.svg?branch=master)](https://travis-ci.org/zsolthajdu/django_stash) [![Known Vulnerabilities](https://snyk.io/test/github/zsolthajdu/django_stash/badge.svg)](https://snyk.io/test/github/zsolthajdu/django_stash)
 
 Django app to store and access website bookmarks.
 * Uses the [Django Rest framework](http://www.django-rest-framework.org) to provide a REST api.
