@@ -4,8 +4,7 @@ from rest_framework import generics
 from rest_framework import permissions
 from rest_framework import pagination
 from rest_framework.utils.urls import remove_query_param, replace_query_param
-from tagging.models import Tag, TaggedItem
-from .serializers import BookmarkSerializer, TagSerializer
+from .serializers import BookmarkSerializer
 from .permissions import IsOwnerOrReadOnly
 from .models import Bookmark
 
@@ -125,10 +124,11 @@ class TagSearchView(generics.ListCreateAPIView):
 			qs = Bookmark.objects.all().filter(public = True).order_by('-created')
 		else:
 			qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
-		return TaggedItem.objects.get_by_model( qs, self.kwargs['term'] )
+		return qs.filter( tags__name__in, self.kwargs['term'] )
 
+"""
 class TagListView(generics.ListCreateAPIView):
-	""" Return a list of all tags, associated with bookmarks of current user """
+#	Return a list of all tags, associated with bookmarks of current user
 	serializer_class = TagSerializer
 	permission_classes =  (permissions.IsAuthenticatedOrReadOnly , IsOwnerOrReadOnly)
 	pagination_class = BMPagination
@@ -138,6 +138,7 @@ class TagListView(generics.ListCreateAPIView):
 			return Tag.objects.usage_for_model( Bookmark, filters=dict( public = True ) )
 		else:
 			return Tag.objects.usage_for_model( Bookmark, filters=dict( owner__username=self.request.user.username ) )
+"""
 
 class DetailsView(generics.RetrieveUpdateDestroyAPIView):
 	"""This class handles the http GET, PUT and DELETE requests."""
@@ -148,9 +149,3 @@ class DetailsView(generics.RetrieveUpdateDestroyAPIView):
 	def get_queryset( self ):
 		return Bookmark.objects.all().filter(owner = self.request.user)
 
-	def delete(self, request, *args, **kwargs):
-		bm = self.get_object()
-		# Remove tag associations first
-		Tag.objects.update_tags( bm, None)
-		#
-		return self.destroy(request, *args, **kwargs)

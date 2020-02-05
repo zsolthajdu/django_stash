@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
-from tagging.registry import register
+from taggit.managers import TaggableManager
 from stash import settings
 
 class Bookmark(models.Model):
@@ -18,6 +18,7 @@ class Bookmark(models.Model):
     public = models.BooleanField( blank=True, default = False )
 
     objects = models.Manager()
+    tags = TaggableManager()
 
     def __str__(self):
         """Return a human readable representation of the model instance."""
@@ -29,5 +30,3 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
 
-# Register with tagging app
-register( Bookmark )
