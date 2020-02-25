@@ -4,9 +4,9 @@ from rest_framework import generics
 from rest_framework import permissions
 from rest_framework import pagination
 from rest_framework.utils.urls import remove_query_param, replace_query_param
-from .serializers import BookmarkSerializer
+from .serializers import BookmarkSerializer, TagSerializer
 from .permissions import IsOwnerOrReadOnly
-from .models import Bookmark
+from .models import Bookmark, Tag
 
 def bm_main(request):
 	return render( request, 'bm.html')
@@ -126,7 +126,7 @@ class TagSearchView(generics.ListCreateAPIView):
 			qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
 		return qs.filter( tags__name__in, self.kwargs['term'] )
 
-"""
+
 class TagListView(generics.ListCreateAPIView):
 #	Return a list of all tags, associated with bookmarks of current user
 	serializer_class = TagSerializer
@@ -137,8 +137,8 @@ class TagListView(generics.ListCreateAPIView):
 		if self.request.user.is_anonymous:
 			return Tag.objects.usage_for_model( Bookmark, filters=dict( public = True ) )
 		else:
-			return Tag.objects.usage_for_model( Bookmark, filters=dict( owner__username=self.request.user.username ) )
-"""
+			# Examples : https://docs.djangoproject.com/en/3.0/topics/db/queries/#lookups-that-span-relationships
+			return Tag.objects.filter( bookmark__owner__username = self.request.user.username )
 
 class DetailsView(generics.RetrieveUpdateDestroyAPIView):
 	"""This class handles the http GET, PUT and DELETE requests."""
@@ -149,3 +149,9 @@ class DetailsView(generics.RetrieveUpdateDestroyAPIView):
 	def get_queryset( self ):
 		return Bookmark.objects.all().filter(owner = self.request.user)
 
+	def delete(self, request, *args, **kwargs):
+		bm = self.get_object()
+		# Remove tag associations first
+#Tag.objects.update_tags( bm, None)
+		#
+		return self.destroy(request, *args, **kwargs)
