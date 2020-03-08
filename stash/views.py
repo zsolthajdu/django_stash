@@ -78,13 +78,18 @@ class SearchView(generics.ListCreateAPIView):
 		# Grab logged in user's bookmarks, ordered by creation date
 		if self.request.user.is_anonymous:
 			# Or, if user is not logged in, all public bookmarks
-			qs = Bookmark.objects.all().filter(public = True).order_by('-created')
+			qs = Bookmark.objects.filter(public = True).order_by('-created')
 		else:
-			qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
-		return qs.filter( title__icontains=self.kwargs['term'],  description__icontains=self.kwargs['term'] )
+			qs = Bookmark.objects.filter(owner = self.request.user).order_by('-created')
+
+		qsTitle = qs.filter( title__icontains=self.kwargs['term'] )
+
+		if qsTitle.count() > 0:
+			return qsTitle
+		else:
+			return  qs.filter( description__icontains=self.kwargs['term'] )
 
 
-		
 class DateSearchView(generics.ListCreateAPIView):
 	""" Search bookmarks based on creation date: year, month and or day  """
 	serializer_class = BookmarkSerializer
@@ -109,10 +114,10 @@ class DateSearchView(generics.ListCreateAPIView):
 		else:
 			return Bookmark.objects.none()
 
-	
 class TagSearchView(generics.ListCreateAPIView):
-	""" Search bookmarks whether they are tagged with certain tags. Uses
-		DjangoTags app """
+	""" Search for bookmarks that are tagged with a specific word.
+	    Supports only one query tag at the moment.
+	"""
 	serializer_class = BookmarkSerializer
 	permission_classes = (permissions.IsAuthenticatedOrReadOnly , )
 	pagination_class = BMPagination
@@ -124,7 +129,7 @@ class TagSearchView(generics.ListCreateAPIView):
 			qs = Bookmark.objects.all().filter(public = True).order_by('-created')
 		else:
 			qs = Bookmark.objects.all().filter(owner = self.request.user).order_by('-created')
-		return qs.filter( tags__name__in, self.kwargs['term'] )
+		return qs.filter( tags__name = self.kwargs['term'] )
 
 
 class TagListView(generics.ListCreateAPIView):
@@ -151,7 +156,10 @@ class DetailsView(generics.RetrieveUpdateDestroyAPIView):
 
 	def delete(self, request, *args, **kwargs):
 		bm = self.get_object()
-		# Remove tag associations first
-#Tag.objects.update_tags( bm, None)
-		#
-		return self.destroy(request, *args, **kwargs)
+
+		# TODO Save list of this bookmark's tags in TAGS
+		result = self.destroy(request, *args, **kwargs)
+
+		# TODO If tags in TAGS are not used any more, delete them
+
+		return result

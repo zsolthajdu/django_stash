@@ -20,8 +20,6 @@ class BookmarkSerializer( serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
     tags = TagSerializer( many = True )
 
-
-
     class Meta:
         """Meta class to map serializer's fields with the model fields."""
         model = Bookmark
