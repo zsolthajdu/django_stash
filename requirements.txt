@@ -1,4 +1,4 @@
-django==3.0.3
+django==3.0.2
 djangorestframework
 coreapi
 markdown==2.6.11
