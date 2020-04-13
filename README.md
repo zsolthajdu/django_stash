@@ -2,7 +2,6 @@
 
 Django app to store and access website bookmarks.
 * Uses the [Django Rest framework](http://www.django-rest-framework.org) to provide a REST api.
-* Uses the [Django Tagging](http://django-tagging.readthedocs.io/en/develop/) app to provide tagging of bookmarks.
   
 ## Current features
 * adding bookmark urls and tags that are associated with the bookmark.
@@ -33,7 +32,6 @@ Once you copied the 'bookmarks' directory to the top folder of your Django proje
 Also make sure Bookmarks' dependencies:
 
 * the Django Rest Framework app
-* the Django Tagging app
 
 are also installed and included in your Django project.
 
@@ -49,7 +47,7 @@ The information has to be in JSON format, with the following fields included:
   'url' : 'http://www.example.com',
   'title' : 'The Example Page',
   'description' : 'My favorite website !!',
-  'tags' : 'favorites,example,bookmarks',
+  'tags' : [ { 'name':'favorites'}, {'name':'example'} ],
   'public' : false
 }
 ```
@@ -80,8 +78,8 @@ The JSON object will include the following fields:
             "url":  .., // bovokmark url
             "public": true,  // true if the bookmark can be accessed without logging in
             "tags": [ // list of tags associated with the bookmark
-                "tag1",
-                "tag2",
+					{"id" : 1, "name": "tag1" },
+					{"id" : 2, "name": "tag2" },
             ]
         }
     ]
